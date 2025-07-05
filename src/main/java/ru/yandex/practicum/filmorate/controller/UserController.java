@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import ch.qos.logback.classic.Logger;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.LoggerFactory;
@@ -7,52 +8,50 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import ch.qos.logback.classic.Logger;
-
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @RestController
-@RequestMapping("/films")
-public class FilmController {
-    private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(FilmController.class);
-    private final Map<Integer, Film> films = new HashMap<>();
+@RequestMapping("/users")
+public class UserController {
+    private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(UserController.class);
+    private final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public ResponseEntity<Film> create(@NotNull @Valid @RequestBody Film newFilm, BindingResult br) {
+    public ResponseEntity<User> create(@Valid @RequestBody User newUser, BindingResult br) {
         try {
             List<String> errors = new ArrayList<>();
             if (br.hasErrors()) {
                 errors.addAll(br.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList());
             }
-            if (newFilm.getReleaseDate() != null &&
-                    newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-                errors.add("Дата релиза не может быть раньше 28 декабря 1895 года или пустой");
-            }
+
             if (!errors.isEmpty()) {
                 throw new ValidationException(Arrays.toString(errors.toArray()));
             }
         } catch (ValidationException e) {
             log.error(e.getMessage());
-            return ResponseEntity.badRequest().body(newFilm);
+            return ResponseEntity.badRequest().body(newUser);
         }
 
-        newFilm.setId(getNextId());
-        films.put(newFilm.getId(), newFilm);
-        log.info("добавлен фильм с id = {}", newFilm.getId());
-        return ResponseEntity.ok(newFilm);
+        if (newUser.getName() == null || newUser.getName().isBlank()) {
+            newUser.setName(newUser.getLogin());
+        }
+
+        newUser.setId(getNextId());
+        users.put(newUser.getId(), newUser);
+        log.info("добавлен пользователь с id = {}", newUser.getId());
+        return ResponseEntity.ok(newUser);
     }
 
     @PutMapping
-    public ResponseEntity<Film> update(@NotNull @Valid @RequestBody Film newFilm, BindingResult br) {
+    public ResponseEntity<User> update(@NotNull @Valid @RequestBody User newUser, BindingResult br) {
         try {
             List<String> errors = new ArrayList<>();
-            if (!films.containsKey(newFilm.getId())) {
-                throw new NotFoundException("фильм с id = " + newFilm.getId() + " не найден");
+            if (!users.containsKey(newUser.getId())) {
+                throw new NotFoundException("пользователь с id = " + newUser.getId() + " не найден");
             }
             if (br.hasErrors()) {
                 errors.addAll(br.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList());
@@ -63,24 +62,24 @@ public class FilmController {
 
         } catch (NotFoundException e) {
             log.error(e.getMessage());
-            return ResponseEntity.status(404).body(newFilm);
+            return ResponseEntity.status(404).body(newUser);
         } catch (ValidationException e) {
             log.error(e.getMessage());
-            return ResponseEntity.badRequest().body(newFilm);
+            return ResponseEntity.badRequest().body(newUser);
         }
 
-        films.put(newFilm.getId(), newFilm);
-        log.info("обновлен фильм с id = {}", newFilm.getId());
-        return ResponseEntity.ok(newFilm);
+        users.put(newUser.getId(), newUser);
+        log.info("обновлен пользователь с id = {}", newUser.getId());
+        return ResponseEntity.ok(newUser);
     }
 
     @GetMapping
-    public Collection<Film> findAll() {
-        return films.values();
+    public Collection<User> findAll() {
+        return users.values();
     }
 
     private int getNextId() {
-        int currentMaxId = films.keySet()
+        int currentMaxId = users.keySet()
                 .stream()
                 .mapToInt(id -> id)
                 .max()
