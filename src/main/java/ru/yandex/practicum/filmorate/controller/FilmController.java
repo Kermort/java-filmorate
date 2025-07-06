@@ -2,42 +2,24 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import ch.qos.logback.classic.Logger;
-
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(FilmController.class);
     private final Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping
-    public ResponseEntity<Film> create(@NotNull @Valid @RequestBody Film newFilm, BindingResult br) {
-        try {
-            List<String> errors = new ArrayList<>();
-            if (br.hasErrors()) {
-                errors.addAll(br.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList());
-            }
-            if (newFilm.getReleaseDate() != null &&
-                    newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-                errors.add("Дата релиза не может быть раньше 28 декабря 1895 года или пустой");
-            }
-            if (!errors.isEmpty()) {
-                throw new ValidationException(Arrays.toString(errors.toArray()));
-            }
-        } catch (ValidationException e) {
-            log.error(e.getMessage());
+    public ResponseEntity<Film> create(@NotNull @Valid @RequestBody Film newFilm) {
+        if (newFilm.getReleaseDate() != null &&
+            newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            log.error("Дата релиза не может быть раньше 28 декабря 1895 года или пустой");
             return ResponseEntity.badRequest().body(newFilm);
         }
 
@@ -48,25 +30,10 @@ public class FilmController {
     }
 
     @PutMapping
-    public ResponseEntity<Film> update(@NotNull @Valid @RequestBody Film newFilm, BindingResult br) {
-        try {
-            List<String> errors = new ArrayList<>();
-            if (!films.containsKey(newFilm.getId())) {
-                throw new NotFoundException("фильм с id = " + newFilm.getId() + " не найден");
-            }
-            if (br.hasErrors()) {
-                errors.addAll(br.getAllErrors().stream().map(ObjectError::getDefaultMessage).toList());
-            }
-            if (!errors.isEmpty()) {
-                throw new ValidationException(Arrays.toString(errors.toArray()));
-            }
-
-        } catch (NotFoundException e) {
-            log.error(e.getMessage());
+    public ResponseEntity<Film> update(@NotNull @Valid @RequestBody Film newFilm) {
+        if (!films.containsKey(newFilm.getId())) {
+            log.error("фильм с id = " + newFilm.getId() + " не найден");
             return ResponseEntity.status(404).body(newFilm);
-        } catch (ValidationException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.badRequest().body(newFilm);
         }
 
         films.put(newFilm.getId(), newFilm);
