@@ -23,6 +23,8 @@ public class Film {
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
     private Set<Long> likes = new HashSet<>();
+    private Mpa mpa;
+    private Set<Genre> genres = new HashSet<>();
 
     public void addLike(long userId) {
         likes.add(userId);

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -8,9 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@Qualifier("InMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
 
@@ -33,6 +36,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     public Optional<User> findById(Long id) {
         return Optional.ofNullable(users.get(id));
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return users.values().stream().filter(u -> u.getEmail().equals(email)).findFirst();
+    }
+
+    public List<User> findByIds(List<Long> ids) {
+        return ids.stream().map(users::get).collect(Collectors.toList());
     }
 
     private long getNextId() {
