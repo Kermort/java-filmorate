@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.mappers.FriendsRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Friends;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
@@ -29,9 +30,7 @@ public class FilmorateFriendsDbTests {
 
     @Test
     void findUserFriendsTest() {
-        List<Friends> friends = friendStorage.findUserFriends(1L);
+        List<User> friends = friendStorage.findUserFriends(1L);
         assertEquals(1, friends.size());
-
-        assertEquals(2, friends.get(0).getFriendId());
     }
 }

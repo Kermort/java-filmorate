@@ -8,7 +8,7 @@ import java.util.List;
 public interface FriendStorage {
     List<Friends> findAll();
 
-    List<Friends> findUserFriends(Long id);
+    List<User> findUserFriends(Long id);
 
     List<Friends> findFriendsByIds(List<Long> ids);
 

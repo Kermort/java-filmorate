@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@Qualifier("UserDbStorage")
 public class UserDbStorage implements UserStorage {
     private static final String FIND_ALL_USERS = "SELECT * FROM \"USER\";";
     private static final String FIND_BY_EMAIL_QUERY = "SELECT * FROM \"USER\" WHERE email = :email";

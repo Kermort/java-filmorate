@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@Qualifier("FilmDbStorage")
 public class FilmDbStorage implements FilmStorage {
     private final NamedParameterJdbcOperations jdbc;
     private final FilmRowMapper mapper;

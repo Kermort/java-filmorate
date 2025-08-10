@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@Qualifier("GenreDbStorage")
 public class GenreDbStorage implements GenreStorage {
     private final NamedParameterJdbcOperations jdbc;
     private final GenreRowMapper mapper;

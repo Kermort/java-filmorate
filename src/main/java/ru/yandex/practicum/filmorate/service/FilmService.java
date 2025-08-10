@@ -23,9 +23,9 @@ public class FilmService {
 
     @Autowired
     public FilmService(UserService userService,
-                       @Qualifier("FilmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("UserDbStorage") UserStorage userStorage,
-                       @Qualifier("FilmGenreDbStorage") FilmGenreStorage filmGenreStorage,
+                       FilmStorage filmStorage,
+                       UserStorage userStorage,
+                       FilmGenreStorage filmGenreStorage,
                        MpaStorage mpaStorage,
                        GenreStorage genreStorage,
                        LikeStorage likeStorage) {
@@ -60,6 +60,11 @@ public class FilmService {
     }
 
     public Film create(Film newFilm) {
+        if (newFilm.getReleaseDate() != null &&
+                newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года или пустой");
+        }
+
         Optional<Mpa> mpaOpt = mpaStorage.findById(newFilm.getMpa().getId());
         if (mpaOpt.isEmpty()) {
             throw new NotFoundException("рейтинг с id " + newFilm.getMpa().getId() + " не существует");
@@ -69,11 +74,6 @@ public class FilmService {
         List<Genre> genres = genreStorage.findByIds(genreIds);
         if (genreIds.size() > genres.size()) {
             throw new NotFoundException("один или несколько жанров не существует");
-        }
-
-        if (newFilm.getReleaseDate() != null &&
-                newFilm.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года или пустой");
         }
 
         Film createdFilm = filmStorage.create(newFilm);
@@ -110,6 +110,11 @@ public class FilmService {
 
         if (newFilm.getReleaseDate() == null) {
             newFilm.setReleaseDate(filmOpt.get().getReleaseDate());
+        }
+
+        if (newFilm.getGenres() != null) {
+            filmGenreStorage.removeFilmGenreByFilmId(newFilm.getId());
+            newFilm.getGenres().forEach(fg -> filmGenreStorage.addFilmGenre(newFilm.getId(), fg.getId()));
         }
 
         return filmStorage.update(newFilm);

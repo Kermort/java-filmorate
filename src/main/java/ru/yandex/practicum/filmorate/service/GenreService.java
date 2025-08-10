@@ -13,7 +13,7 @@ import java.util.Optional;
 public class GenreService {
     private final GenreStorage genreStorage;
 
-    public GenreService(@Qualifier("GenreDbStorage") GenreStorage genreStorage) {
+    public GenreService(GenreStorage genreStorage) {
         this.genreStorage = genreStorage;
     }
 

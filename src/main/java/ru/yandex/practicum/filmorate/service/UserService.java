@@ -19,7 +19,7 @@ public class UserService {
     private final FriendStorage friendStorage;
 
     @Autowired
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, FriendStorage friendStorage) {
+    public UserService(UserStorage userStorage, FriendStorage friendStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
     }
@@ -121,10 +121,6 @@ public class UserService {
             throw new NotFoundException("пользователь с id " + id + " не найден.");
         }
 
-        List<Friends> userFriends = friendStorage.findUserFriends(id);
-        Set<Long> friendIds = userFriends.stream()
-                .map(Friends::getFriendId).collect(Collectors.toSet());
-        userOpt.get().setFriends(friendIds);
         return userOpt.get();
     }
 
@@ -134,24 +130,6 @@ public class UserService {
             throw new NotFoundException("Пользователь не найден");
         }
 
-        List<Friends> userFriendsRelation = friendStorage.findUserFriends(id);
-
-        if (userFriendsRelation.isEmpty()) {
-            return List.of();
-        }
-
-        List<User> userFriends = userStorage.findByIds(userFriendsRelation.stream().map(Friends::getFriendId).toList());
-
-        List<Friends> friendsOfFriends = friendStorage.findFriendsByIds(userFriends.stream().map(User::getId).toList());
-        Map<Long, Set<Long>> friendsOfFriendsMap = new HashMap<>();
-
-        friendsOfFriends.forEach((f) -> {
-            friendsOfFriendsMap.putIfAbsent(f.getUserId(), new HashSet<>());
-            friendsOfFriendsMap.get(f.getUserId()).add(f.getFriendId());
-        });
-
-        userFriends.forEach(u -> u.setFriends(friendsOfFriendsMap.get(u.getId())));
-
-        return userFriends;
+        return friendStorage.findUserFriends(id);
     }
 }

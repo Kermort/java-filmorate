@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -19,9 +18,16 @@ import java.util.stream.Collectors;
 
 @Repository
 public class FriendDbStorage implements FriendStorage {
-    private final UserStorage userStorage;
     private static final String FIND_ALL_FRIENDS = "SELECT * FROM FRIENDS;";
-    private static final String FIND_USER_FRIENDS = "SELECT * FROM FRIENDS WHERE user_id = :userId";
+    private static final String FIND_USER_FRIENDS = """
+    SELECT *
+    FROM "USER"
+    WHERE user_id IN (
+        SELECT FRIEND_ID
+        FROM FRIENDS
+        WHERE user_id = :userId);;
+    """;
+
     private static final String FIND_FRIENDS_BY_IDS = "SELECT * FROM FRIENDS WHERE user_id IN (:userIds);";
     private static final String INSERT_FRIENDS_QUERY = "INSERT INTO FRIENDS (user_id, friend_id) " +
             "VALUES (:userId, :friendId);";
@@ -32,7 +38,7 @@ public class FriendDbStorage implements FriendStorage {
             """
                     SELECT * FROM "USER" WHERE user_id IN
                     (SELECT u1.friend_id
-                    FROM (SELECT id, user_id, friend_id FROM FRIENDS WHERE FRIENDS.USER_ID = :user1Id) AS u1
+                    FROM (SELECT user_id, friend_id FROM FRIENDS WHERE FRIENDS.USER_ID = :user1Id) AS u1
                     INNER JOIN (SELECT friend_id FROM FRIENDS WHERE FRIENDS.USER_ID = :user2Id) AS u2 ON u1.friend_id = u2.friend_id)""";
 
     private final NamedParameterJdbcOperations jdbc;
@@ -42,11 +48,9 @@ public class FriendDbStorage implements FriendStorage {
     @Autowired
     public FriendDbStorage(NamedParameterJdbcOperations jdbc,
                            FriendsRowMapper mapper,
-                           UserRowMapper userMapper,
-                           @Qualifier("UserDbStorage") UserStorage userStorage) {
+                           UserRowMapper userMapper) {
         this.jdbc = jdbc;
         this.mapper = mapper;
-        this.userStorage = userStorage;
         this.userMapper = userMapper;
     }
 
@@ -65,9 +69,9 @@ public class FriendDbStorage implements FriendStorage {
     }
 
     @Override
-    public List<Friends> findUserFriends(Long id) {
+    public List<User> findUserFriends(Long id) {
         try {
-            return jdbc.query(FIND_USER_FRIENDS, Map.of("userId", id), mapper);
+            return jdbc.query(FIND_USER_FRIENDS, Map.of("userId", id), userMapper);
         } catch (EmptyResultDataAccessException ignored) {
             return new ArrayList<>();
         }

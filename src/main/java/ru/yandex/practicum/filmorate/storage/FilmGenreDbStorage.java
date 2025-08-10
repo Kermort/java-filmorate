@@ -14,7 +14,6 @@ import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
-@Qualifier("FilmGenreDbStorage")
 public class FilmGenreDbStorage implements FilmGenreStorage {
     private final NamedParameterJdbcOperations jdbc;
     private final FilmGenreRowMapper mapper;
@@ -22,6 +21,7 @@ public class FilmGenreDbStorage implements FilmGenreStorage {
 
     private static final String FIND_ALL_FILM_GENRES_QUERY = "SELECT * FROM FILM_GENRE;";
     private static final String INSERT_FILM_GENRE_QUERY = "INSERT INTO FILM_GENRE (film_id, genre_id) VALUES (:filmId, :genreId);";
+    private static final String REMOVE_FILM_GENRE_QUERY = "DELETE FROM FILM_GENRE WHERE film_id = :filmId;";
     private static final String FIND_FILM_GENRES_BY_FILM_ID_QUERY = """
     SELECT g.genre_id, g.name
     FROM GENRE AS g INNER JOIN FILM_GENRE AS fg ON g.genre_id = fg.genre_id
@@ -39,5 +39,9 @@ public class FilmGenreDbStorage implements FilmGenreStorage {
 
     public void addFilmGenre(Long filmId, Long genreId) {
         jdbc.update(INSERT_FILM_GENRE_QUERY, Map.of("filmId", filmId, "genreId", genreId));
+    }
+
+    public void removeFilmGenreByFilmId(Long filmId) {
+        jdbc.update(REMOVE_FILM_GENRE_QUERY, Map.of("filmId", filmId));
     }
 }

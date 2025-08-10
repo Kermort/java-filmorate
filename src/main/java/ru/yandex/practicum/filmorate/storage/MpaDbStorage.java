@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@Qualifier("MpaDbStorage")
 public class MpaDbStorage implements MpaStorage {
     private final NamedParameterJdbcOperations jdbc;
     private final MpaRowMapper mapper;
