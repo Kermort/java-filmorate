@@ -1,0 +1,41 @@
+MERGE INTO GENRE AS target
+USING (
+    SELECT 1 AS GENRE_ID, 'Комедия' AS NAME
+    UNION ALL
+    SELECT 2 AS GENRE_ID, 'Драма' AS NAME
+    UNION ALL
+    SELECT 3 AS GENRE_ID, 'Мультфильм' AS NAME
+    UNION ALL
+    SELECT 4 AS GENRE_ID, 'Триллер' AS NAME
+    UNION ALL
+    SELECT 5 AS GENRE_ID, 'Документальный' AS NAME
+    UNION ALL
+    SELECT 6 AS GENRE_ID, 'Боевик' AS NAME
+) AS source
+ON (target.GENRE_ID = source.GENRE_ID)
+WHEN MATCHED THEN
+    UPDATE SET
+        target.NAME = source.NAME
+WHEN NOT MATCHED THEN
+    INSERT (NAME)
+    VALUES (source.NAME);
+
+MERGE INTO MPA AS target
+USING (
+    SELECT 1 AS MPA_ID, 'G' AS NAME
+    UNION ALL
+    SELECT 2 AS MPA_ID, 'PG' AS NAME
+    UNION ALL
+    SELECT 3 AS MPA_ID, 'PG-13' AS NAME
+    UNION ALL
+    SELECT 4 AS MPA_ID, 'R' AS NAME
+    UNION ALL
+    SELECT 5 AS MPA_ID, 'NC-17' AS NAME
+) AS source
+ON (target.MPA_ID = source.MPA_ID)
+WHEN MATCHED THEN
+    UPDATE SET
+        target.NAME = source.NAME
+WHEN NOT MATCHED THEN
+    INSERT (NAME)
+    VALUES (source.NAME);

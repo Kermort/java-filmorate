@@ -14,4 +14,7 @@ public interface UserStorage {
 
     Optional<User> findById(Long id);
 
+    List<User> findByIds(List<Long> ids);
+
+    Optional<User> findByEmail(String email);
 }
